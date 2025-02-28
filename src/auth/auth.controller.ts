@@ -144,9 +144,21 @@ export class AuthController {
     }
   }
 
+ // refresh token route
   @Post('refresh-token')
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshTokens(refreshTokenDto);
+  async refreshToken(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<TApiResponse> {
+    try {
+      const result = await this.authService.refreshToken(refreshTokenDto);
+      return {
+        data: result,
+        message: 'Token refreshed successfully',
+        success: true,
+      };
+    } catch (error) {
+      this._handleError(error, 'Error refreshing token');
+    }
   }
 
   //   @UseGuards(JwtAuthGuard)

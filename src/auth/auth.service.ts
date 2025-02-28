@@ -266,6 +266,40 @@ export class AuthService {
     return { tokens: tokens, user: user };
   }
 
+  // refresh token
+  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<Tokens> {
+    // find the user with the email
+    const user = await this._userService.findByEmail(refreshTokenDto.email);
+
+    // console.log('user found', user);
+
+    // now check if the user has the same refresh token
+    const isValid = await bcrypt.compare(
+      refreshTokenDto.refreshToken,
+      user.refreshToken,
+    );
+
+    console.log("isValid", isValid);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const tokens = await this._getTokens(
+      user.email,
+      user.id,
+      user.fullName,
+      'user',
+    );
+
+    console.log("refreshed tokens", tokens.refresh_token);
+
+    // now save the token in the user table for future use
+    const hashedToken = await this._hashToken(tokens.refresh_token);
+    await this._userService.update(user.id, { refreshToken: hashedToken });
+    return tokens;
+  }
+
   async generateTokens(user: any): Promise<Tokens> {
     const payload = { email: user.email, sub: user.id };
     return {
@@ -274,15 +308,6 @@ export class AuthService {
         expiresIn: this._configService.jwt.refreshExpires,
       }),
     };
-  }
-
-  async refreshTokens(refreshTokenDto: RefreshTokenDto): Promise<Tokens> {
-    try {
-      const payload = this._jwtService.verify(refreshTokenDto.refreshToken);
-      return this.generateTokens(payload);
-    } catch (e) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
   }
 
   private async generateHashPassword(password: string) {
