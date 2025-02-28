@@ -1,10 +1,50 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ApiConfigModule } from '@core/config/config.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RateLimitGuard } from '@core/guards/rate-limit.guard';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { RedisModule } from '@utilities/redis/redis.module';
+import { DatabaseModule } from '@core/database/database.module';
+import { UserModule } from '@user/user.module';
+import { AuthModule } from '@auth/auth.module';
+import { WinstonLogModule } from '@core/config/winston/winston.module';
 
 @Module({
-  imports: [],
+  imports: [
+    ServeStaticModule.forRoot(
+      {
+        rootPath: join(__dirname, '..', 'private'),
+        serveRoot: '/private',
+      },
+      {
+        rootPath: join(__dirname, '..', 'public'),
+        serveRoot: '/public',
+      },
+    ),
+    ApiConfigModule,
+    RedisModule,
+    DatabaseModule,
+    UserModule,
+    AuthModule,
+    WinstonLogModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    Logger,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AtGuard,
+    // },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: RolesGuard,
+    // },
+    {
+      provide: APP_GUARD,
+      useClass: RateLimitGuard,
+    },
+  ],
 })
 export class AppModule {}
