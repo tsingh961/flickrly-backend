@@ -3,11 +3,11 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
-export class PostgresConfigService
+export class PostgresClientService 
   extends PrismaClient
   implements OnModuleInit
 {
-  private readonly _logger = new Logger(PostgresConfigService.name);
+  private readonly _logger = new Logger(PostgresClientService .name);
   constructor(private _config: ApiConfigService) {
     super({
       datasources: {

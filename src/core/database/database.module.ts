@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { MongoConfigService } from './mongo-config.service';
-import { PostgresConfigService } from './postgres-config.service';
+import { PostgresClientService } from './postgresClientService .service';
 
+@Global()
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -12,7 +13,7 @@ import { PostgresConfigService } from './postgres-config.service';
       useClass: MongoConfigService,
     }),
   ],
-  providers: [MongoConfigService, PostgresConfigService],
-  exports: [MongoConfigService, PostgresConfigService],
+  providers: [MongoConfigService, PostgresClientService],
+  exports: [MongoConfigService, PostgresClientService],
 })
 export class DatabaseModule {}

@@ -32,6 +32,8 @@ model User {
   posts           Post[]
   comments        Comment[]
 
+  refreshToken    String           @default("")
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 }
