@@ -10,6 +10,7 @@ import { DatabaseModule } from '@core/database/database.module';
 import { UserModule } from '@user/user.module';
 import { AuthModule } from '@auth/auth.module';
 import { WinstonLogModule } from '@core/config/winston/winston.module';
+import { AtGuard } from '@auth/common/gaurds/at.gaurd';
 
 @Module({
   imports: [
@@ -33,10 +34,10 @@ import { WinstonLogModule } from '@core/config/winston/winston.module';
   controllers: [AppController],
   providers: [
     Logger,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AtGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AtGuard,
+    },
     // {
     //   provide: APP_GUARD,
     //   useClass: RolesGuard,

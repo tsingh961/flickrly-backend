@@ -120,6 +120,7 @@ export const MESSAGE = {
     REGISTRATION_SUCCESSFUL: 'Registration successful',
     VERIFICATION_SUCCESSFUL: 'Verification successful',
     TOKEN_VERIFIED: 'Token verified successfully',
+    FORGET_PASSWORD_SUCCESS: 'Forgot password link sent successfully',
     ERROR: {
       REGISTER_FAILED: 'Registration failed',
       VERIFICATION_FAILED: 'Verification failed',
@@ -150,6 +151,8 @@ export const MESSAGE = {
       INVALID_INVITE_TOKEN: 'Invalid invitation link.',
       INVALID_INVITE_PARAMS: 'Invalid invitation params.',
       INVITE_EXPIRED: 'Invitation expired.',
+      VERIFY_FORGET_PASSWORD_OTP_FAILED: 'Failed to verify forget password OTP',
+      RESET_PASSWORD_FAILED: 'Failed to reset password',
     },
   },
   FORBIDDEN_MESSAGE: {

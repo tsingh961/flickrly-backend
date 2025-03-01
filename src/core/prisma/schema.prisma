@@ -7,6 +7,14 @@ datasource db {
   url      = env("POSTGRES_URI")
 }
 
+// ENUMS
+enum Status {
+  ACTIVE
+  INACTIVE
+  DELETED
+  TO_BE_DELETED
+}
+
 
 model User {
   id              String           @id @default(uuid())
@@ -33,6 +41,8 @@ model User {
   comments        Comment[]
 
   refreshToken    String           @default("")
+
+  status          Status           @default(ACTIVE)
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
