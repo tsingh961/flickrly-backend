@@ -35,7 +35,8 @@ export class UserService {
       include: {
         followers: {
           include: {
-            follower: true,
+            // follower: true,
+            following: true,
           },
         },
       },
@@ -45,7 +46,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    return user.followers.map((f) => f.follower);
+    return user;
   }
 
   // Get all followings of a user
@@ -56,7 +57,8 @@ export class UserService {
       include: {
         following: {
           include: {
-            following: true,
+            // following: true,
+            follower: true,
           },
         },
       },
