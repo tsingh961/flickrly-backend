@@ -11,6 +11,8 @@ import { UserModule } from '@user/user.module';
 import { AuthModule } from '@auth/auth.module';
 import { WinstonLogModule } from '@core/config/winston/winston.module';
 import { AtGuard } from '@auth/common/gaurds/at.gaurd';
+import { FriendRequestModule } from '@followRequest/followRequest.module';
+import { FollowersModule } from '@follower/followers.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { AtGuard } from '@auth/common/gaurds/at.gaurd';
     UserModule,
     AuthModule,
     WinstonLogModule,
+    FriendRequestModule,
+    FollowersModule
   ],
   controllers: [AppController],
   providers: [
