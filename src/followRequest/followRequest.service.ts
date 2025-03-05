@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,6 +16,7 @@ import { UpdateFollowRequestDto } from './dto/update.followRequest.dto';
 export class FollowRequestService {
   constructor(
     private prisma: PostgresClientService,
+    @Inject(forwardRef(() => FollowersService))
     private readonly _followerService: FollowersService,
   ) {}
 
@@ -158,6 +161,18 @@ export class FollowRequestService {
   //     data: updateFriendRequestDto,
   //   });
   // }
+
+  // findFollowRequest 
+  async findFollowRequest(senderId: string, receiverId: string) {
+    return this.prisma.followRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          senderId,
+          receiverId,
+        },
+      },
+    });
+  }
 
   async remove(id: string) {
     return this.prisma.followRequest.delete({

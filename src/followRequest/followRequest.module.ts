@@ -1,11 +1,12 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { FollowRequestController } from './followRequest.controller';
 import { FollowRequestService } from './followRequest.service';
 import { FollowersModule } from '@follower/followers.module';
 
 @Module({
-  imports: [FollowersModule],
+  imports: [forwardRef(() => FollowersModule)],
   controllers: [FollowRequestController],
   providers: [FollowRequestService],
+  exports: [FollowRequestService],
 })
-export class FriendRequestModule {}
+export class FollowRequestModule {}

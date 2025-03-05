@@ -51,7 +51,6 @@ export class UserService {
 
   // Get all followings of a user
   async getFollowings(userId: string) {
-    console.log('userId', userId);
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
