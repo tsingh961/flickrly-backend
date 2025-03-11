@@ -7,6 +7,14 @@ datasource db {
   url      = env("POSTGRES_URI")
 }
 
+// ENUMS
+enum Status {
+  ACTIVE
+  INACTIVE
+  DELETED
+  TO_BE_DELETED
+}
+
 
 model User {
   id              String           @id @default(uuid())
@@ -23,10 +31,13 @@ model User {
   location        String?
   interests       String[]         @default([])
   
- // followers       User[]           @relation("Followers", references: [id])
- // followings      User[]           @relation("Followings", references: [id])
-  followRequests  FriendRequest[]  @relation("ReceivedRequests")
-  sentRequests    FriendRequest[]  @relation("SentRequests")
+ // Followers and following relationships
+  followers       Follower[]       @relation("Followers")
+  following       Follower[]       @relation("Following")
+  
+  
+  followRequests  FollowRequest[]  @relation("ReceivedRequests")
+  sentRequests    FollowRequest[]  @relation("SentRequests")
  // blockedUsers    User[]           @relation("BlockedUsers", references: [id])
 
   posts           Post[]
@@ -34,8 +45,22 @@ model User {
 
   refreshToken    String           @default("")
 
+  status          Status           @default(ACTIVE)
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+}
+
+
+model Follower {
+  id            String  @id @default(uuid())
+  followerId    String
+  followingId   String
+
+  follower      User    @relation("Followers", fields: [followerId], references: [id])
+  following     User    @relation("Following", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId]) // Ensure a user can't follow someone twice
 }
 
 model Post {
@@ -72,17 +97,22 @@ model Comment {
   updatedAt DateTime  @updatedAt
 }
 
-model FriendRequest {
+model FollowRequest {
   id          String    @id @default(uuid())
   senderId    String
   receiverId  String
   sender      User      @relation("SentRequests", fields: [senderId], references: [id])
   receiver    User      @relation("ReceivedRequests", fields: [receiverId], references: [id])
 
-  status      FriendRequestStatus @default(PENDING)
+  status      FollowRequestStatus @default(PENDING)
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+
+  @@unique([senderId, receiverId]) // Prevents duplicate follow requests
+  @@index([senderId])
+  @@index([receiverId])
 }
 
 enum PostType {
@@ -91,8 +121,8 @@ enum PostType {
   VIDEO
 }
 
-enum FriendRequestStatus {
+enum FollowRequestStatus {
   PENDING
-  ACCEPTED
-  REJECTED
+  ACCEPTED 
+  REJECTED 
 }

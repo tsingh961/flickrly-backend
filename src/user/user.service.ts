@@ -1,5 +1,5 @@
 import { PostgresClientService } from '@core/database/postgresClientService .service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { User } from '.prisma/client';
 import { CreateUserDto } from './dto/create.user.dto';
@@ -25,6 +25,49 @@ export class UserService {
       where: { id },
       data: user,
     });
+  }
+
+  // Get all followers of a user
+  async getFollowers(userId: string) {
+    // fetch all the followers list of a user
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        followers: {
+          include: {
+            // follower: true,
+            following: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  // Get all followings of a user
+  async getFollowings(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        following: {
+          include: {
+            // following: true,
+            follower: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 
   async findAll(): Promise<User[]> {

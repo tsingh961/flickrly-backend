@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsOptional, IsArray, IsBoolean } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsArray, IsBoolean, IsDate, IsDateString } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -25,7 +25,7 @@ export class CreateUserDto {
   @IsOptional()
   isPrivate?: boolean; // Optional
 
-  @IsString()
+  @IsDateString()
   @IsOptional()
   dateOfBirth?: string; // Optional (use string for flexibility, convert to Date in service)
 

@@ -10,6 +10,9 @@ import { DatabaseModule } from '@core/database/database.module';
 import { UserModule } from '@user/user.module';
 import { AuthModule } from '@auth/auth.module';
 import { WinstonLogModule } from '@core/config/winston/winston.module';
+import { AtGuard } from '@auth/common/gaurds/at.gaurd';
+import { FollowRequestModule } from '@followRequest/followRequest.module';
+import { FollowersModule } from '@follower/followers.module';
 
 @Module({
   imports: [
@@ -29,14 +32,16 @@ import { WinstonLogModule } from '@core/config/winston/winston.module';
     UserModule,
     AuthModule,
     WinstonLogModule,
+    FollowRequestModule,
+    FollowersModule
   ],
   controllers: [AppController],
   providers: [
     Logger,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AtGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AtGuard,
+    },
     // {
     //   provide: APP_GUARD,
     //   useClass: RolesGuard,

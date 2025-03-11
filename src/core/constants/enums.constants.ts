@@ -191,27 +191,11 @@ export enum ModuleName {
   ADMIN = 'admin',
   AUDIT_TRAIL = 'audittrail',
   FILE_UPLOAD = 'fileupload',
-  SLUG = 'slug',
-  COURSE = 'course',
-  QUESTION = 'question',
-  DIFFICULTY_LEVEL = 'difficulty-level',
-  ASSESSMENT = 'assessment',
-  EVALUATION = 'evaluation',
-  LEADERBOARD = 'leaderboard',
-  COURSE_CONTENT = 'course-content',
-  ANALYTICS = 'analytics',
-  PROMPT = 'prompt',
+ 
 }
 
-export enum ASSESSMENT_TYPE {
-  PRACTICE = 'practice',
-  ASSESSMENT = 'assessment',
-}
 
-export enum SOURCE_CONTENT {
-  PDF = 'pdf',
-  URL = 'url',
-}
+
 export enum DeviceType {
   ANDROID = 'Android',
   IOS = 'iOS',
@@ -223,13 +207,10 @@ export enum DeviceType {
   PHONE = 'Phone',
   OTHER = 'Other',
 }
-export enum QUESTION_GENERATED_BY {
-  MANUAL = 'manual',
-  AI = 'ai',
-  CSV = 'csv',
-}
 
-export enum QUESTION_STATUS {
+export enum RequestStatus
+{
   PENDING = 'pending',
-  COMPLETED = 'completed',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
 }

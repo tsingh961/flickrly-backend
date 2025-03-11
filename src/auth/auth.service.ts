@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -23,6 +25,11 @@ import { VerificationCode } from '@utilities/communication-provider/verification
 import { VerifyOtpDto } from './dto/verifyOtp.dto';
 import { SignupDto } from './dto/signup.dto';
 import { User } from '@prisma/client';
+import { GetCurrentUser, Public } from './common/decorators';
+import { MESSAGE } from '@core/constants/generalMessages.constants';
+import { TCurrentUserType } from './types/user.type';
+import { expireTime1H } from '@core/utils/utils';
+import { ResetPasswordDto } from './dto/forgot-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -267,22 +274,17 @@ export class AuthService {
   }
 
   // refresh token
-  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<Tokens> {
-    // find the user with the email
-    const user = await this._userService.findByEmail(refreshTokenDto.email);
+  async refresh(userId: string, rt: string, currentUser: any): Promise<Tokens> {
+    const user = await this._userService.findOne(userId);
 
-    // console.log('user found', user);
+    if (!user) {
+      throw new NotFoundException(MESSAGE.USER.NOT_FOUND);
+    }
 
-    // now check if the user has the same refresh token
-    const isValid = await bcrypt.compare(
-      refreshTokenDto.refreshToken,
-      user.refreshToken,
-    );
+    const isRTEqual = await bcrypt.compare(rt, user.refreshToken);
 
-    console.log("isValid", isValid);
-
-    if (!isValid) {
-      throw new UnauthorizedException('Invalid refresh token');
+    if (!isRTEqual) {
+      throw new BadRequestException(MESSAGE.AUTH.ERROR.TOKEN_REFRESH_FAILED);
     }
 
     const tokens = await this._getTokens(
@@ -292,12 +294,130 @@ export class AuthService {
       'user',
     );
 
-    console.log("refreshed tokens", tokens.refresh_token);
-
     // now save the token in the user table for future use
     const hashedToken = await this._hashToken(tokens.refresh_token);
+
     await this._userService.update(user.id, { refreshToken: hashedToken });
+
     return tokens;
+  }
+
+  async logout(user: TCurrentUserType): Promise<{ message: string }> {
+    try {
+      // mark the refresh token as null in the database to prevent further use
+      await this._userService.update(user.sub, { refreshToken: '' });
+
+      return { message: MESSAGE.AUTH.LOGOUT_SUCCESSFUL };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // forget password
+  async forgetPassword(body: { email: string }): Promise<{ message: string }> {
+    const { email } = body;
+
+    const user = await this._userService.findByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // check if the otp has been already sent in last 30 minutes
+    const emailData =
+      await this._verificationCodeService.findByMobileNumberOrEmail({ email });
+    if (emailData && emailData.timestamp > new Date().getTime() - 1800000) {
+      throw new BadRequestException(
+        'OTP already sent in last 30 minutes Please try again later',
+      );
+    }
+
+    const otp = await this._generateOTP();
+    const template = getOtpMail(user.fullName, otp.toString());
+
+    const IsSend = await this._dynamicEmailService.sendEmail({
+      to: email,
+      subject: 'Verification Code',
+      html: template,
+      from: this._configService.email.emailFrom,
+      text: getOtpMailText(user.fullName, otp.toString()),
+    });
+
+    if (!IsSend) {
+      throw new ConflictException('Error sending OTP');
+    }
+
+    await this.saveOrUpdateVerificationCode(email, otp);
+
+    return {
+      message: 'Verification code sent to your email',
+    };
+  }
+
+  // verify the forget password OTP and generate token for reset password
+  async verifyForgetPasswordOtp(
+    body: VerifyOtpDto,
+  ): Promise<{ message: string; resetToken: string }> {
+    const { email, otp } = body;
+
+    const emailData =
+      await this._verificationCodeService.findByMobileNumberOrEmail({ email });
+
+    if (!emailData) {
+      throw new NotFoundException('Invalid OTP');
+    }
+
+    if (emailData.otp !== otp) {
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    if (emailData.isVerified) {
+      throw new BadRequestException('OTP already verified');
+    }
+
+    const currentTime = new Date().getTime();
+    if (currentTime > emailData.timestamp) {
+      throw new BadRequestException('OTP expired');
+    }
+
+    await this._verificationCodeService.update(emailData._id.toString(), {
+      isVerified: true,
+    });
+
+    // Generate the reset token
+    const resetToken = await this._jwtService.signAsync(
+      { email },
+      {
+        secret: this._configService.jwt.refreshSecret,
+        expiresIn: expireTime1H,
+      },
+    );
+
+    return {
+      message: 'OTP verified successfully',
+      resetToken,
+    };
+  }
+
+  // reset password using the reset token
+  async resetPassword(body: ResetPasswordDto): Promise<{ message: string }> {
+    const { email } = await this._jwtService.verifyAsync(body.token, {
+      secret: this._configService.jwt.refreshSecret,
+    });
+
+    const user = await this._userService.findByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hashedPassword = await this.generateHashPassword(body.password);
+
+    await this._userService.update(user.id, { password: hashedPassword });
+
+    return {
+      message: 'Password reset successfully',
+    };
   }
 
   async generateTokens(user: any): Promise<Tokens> {

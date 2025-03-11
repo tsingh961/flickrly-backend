@@ -10,6 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { VerificationCodeModule } from '@utilities/communication-provider/verification-code/verification-code.module';
 import { DynamicEmailModule } from '@utilities/communication-provider/email/dynamic-email.module';
+import { AtStrategy, RtStrategy } from './strategies';
 
 @Module({
   imports: [
@@ -28,6 +29,6 @@ import { DynamicEmailModule } from '@utilities/communication-provider/email/dyna
     // }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, AtStrategy, RtStrategy],
 })
 export class AuthModule {}
